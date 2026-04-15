@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 from datetime import timedelta
 
@@ -17,9 +18,20 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-u&qmm5sm+z%-4fywvrd#8e9^(3!ewxkpfgiud%$)v5si_gb82('
+SECRET_KEY = '0=o$2s+kr())9l&xui)a3*doba-1*@$dkn2n9!01u(-2+*@sww'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
+
+# Security settings for production (disabled for development)
+SECURE_SSL_REDIRECT = False  # Disabled for development
+SECURE_HSTS_SECONDS = 0  # Disabled for development
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False  # Disabled for development
+SECURE_HSTS_PRELOAD = False  # Disabled for development
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SESSION_COOKIE_SECURE = False  # Disabled for development
+CSRF_COOKIE_SECURE = False  # Disabled for development
+X_FRAME_OPTIONS = 'DENY'
 
 # Application definition
 INSTALLED_APPS = [
@@ -32,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'corsheaders',
+    'sslserver',
     'api',  # your app
 ]
 
@@ -80,7 +93,23 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-AUTH_PASSWORD_VALIDATORS = []
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -88,10 +117,24 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# Email settings (for development - console backend)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# For production, use SMTP:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@gmail.com'
+# EMAIL_HOST_PASSWORD = 'your-app-password'
+
 # Static files
 STATIC_URL = 'static/'
 STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media files (for uploaded images like receipts)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -135,13 +178,18 @@ SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
 }
 
+# OpenAI API Key (you need to set this environment variable)
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_ALL_ORIGINS = False  # Disabled for production security
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
+    "https://yourdomain.com",
+    "https://www.yourdomain.com",
+    "http://localhost:3000",  # For Next.js frontend development
+    "http://127.0.0.1:3000",  # Alternative localhost
+    "https://localhost:3000",  # HTTPS for Next.js frontend development
+    "https://127.0.0.1:3000",  # HTTPS alternative localhost
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_METHODS = [
@@ -163,3 +211,16 @@ CORS_ALLOWED_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# Google Vision API settings
+GOOGLE_VISION_API_KEY = os.getenv('GOOGLE_VISION_API_KEY', '')
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '')
+
+# AWS Textract settings
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+
+# Vision service configuration
+VISION_SERVICE = os.getenv('VISION_SERVICE', 'openai')  # Options: 'openai', 'google', 'aws'
+VISION_FALLBACK_SERVICES = os.getenv('VISION_FALLBACK_SERVICES', 'google,aws').split(',')  # Comma-separated list

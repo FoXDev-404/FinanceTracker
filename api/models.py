@@ -31,6 +31,7 @@ class User(AbstractBaseUser):
     name = models.CharField(max_length=100)
     email = models.EmailField(max_length=150, unique=True)
     password = models.CharField(max_length=255)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
     date_joined = models.DateTimeField(default=timezone.now)
     last_login = models.DateTimeField(null=True, blank=True)
@@ -117,3 +118,134 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.transaction_type} - {self.amount} on {self.date}"
+
+
+class Budget(models.Model):
+    budget_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    month = models.DateField()
+
+    class Meta:
+        db_table = 'Budgets'
+        verbose_name = 'Budget'
+        verbose_name_plural = 'Budgets'
+
+    def __str__(self):
+        return f"Budget for {self.category.name} - {self.amount} for {self.month.strftime('%Y-%m')}"
+
+
+class Conversation(models.Model):
+    conversation_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_message = models.TextField()
+    ai_response = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'Conversations'
+        verbose_name = 'Conversation'
+        verbose_name_plural = 'Conversations'
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"Conversation {self.conversation_id} - {self.user.name} at {self.timestamp}"
+
+
+class Reminder(models.Model):
+    reminder_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    reminder_type = models.CharField(max_length=50, choices=[
+        ('bill_payment', 'Bill Payment'),
+        ('recurring_expense', 'Recurring Expense'),
+        ('budget_alert', 'Budget Alert'),
+        ('seasonal', 'Seasonal Reminder')
+    ])
+    due_date = models.DateField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    vendor = models.CharField(max_length=100, blank=True, null=True)
+    recurring = models.BooleanField(default=False)
+    recurring_frequency = models.CharField(max_length=20, choices=[
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('yearly', 'Yearly')
+    ], blank=True, null=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'Reminders'
+        verbose_name = 'Reminder'
+        verbose_name_plural = 'Reminders'
+        ordering = ['due_date']
+
+    def __str__(self):
+        return f"{self.title} - {self.due_date}"
+
+
+class Forecast(models.Model):
+    forecast_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    forecast_type = models.CharField(max_length=50, choices=[
+        ('expense', 'Expense Forecast'),
+        ('income', 'Income Forecast'),
+        ('cashflow', 'Cash Flow Forecast'),
+        ('budget', 'Budget Forecast')
+    ])
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, blank=True, null=True)
+    period_start = models.DateField()
+    period_end = models.DateField()
+    predicted_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    confidence_score = models.FloatField(default=0.0)  # 0-1 score
+    actual_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    accuracy = models.FloatField(blank=True, null=True)  # Calculated after period
+    factors = models.JSONField(blank=True, null=True)  # Contributing factors
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'Forecasts'
+        verbose_name = 'Forecast'
+        verbose_name_plural = 'Forecasts'
+        ordering = ['-period_start']
+
+    def __str__(self):
+        return f"{self.forecast_type} - {self.predicted_amount} ({self.period_start} to {self.period_end})"
+
+
+class Anomaly(models.Model):
+    anomaly_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, blank=True, null=True)
+    anomaly_type = models.CharField(max_length=50, choices=[
+        ('unusual_amount', 'Unusual Amount'),
+        ('duplicate_charge', 'Duplicate Charge'),
+        ('unusual_vendor', 'Unusual Vendor'),
+        ('unusual_category', 'Unusual Category'),
+        ('unusual_time', 'Unusual Time'),
+        ('budget_exceeded', 'Budget Exceeded')
+    ])
+    severity = models.CharField(max_length=20, choices=[
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('critical', 'Critical')
+    ])
+    description = models.TextField()
+    confidence_score = models.FloatField(default=0.0)  # 0-1 score
+    resolved = models.BooleanField(default=False)
+    resolved_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'Anomalies'
+        verbose_name = 'Anomaly'
+        verbose_name_plural = 'Anomalies'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.anomaly_type} - {self.severity} ({self.confidence_score:.2f})"

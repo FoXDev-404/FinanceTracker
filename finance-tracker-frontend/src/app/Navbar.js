@@ -165,6 +165,48 @@ export default function Navbar() {
                                     </Link>
 
                                     <Link
+                                        href="/transactions"
+                                        style={{
+                                            color: isDarkMode ? '#f9fafb' : '#1f2937',
+                                            textDecoration: 'none',
+                                            fontSize: '0.9rem',
+                                            fontWeight: '500',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '6px',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseOver={(e) => {
+                                            e.target.style.backgroundColor = isDarkMode ? '#374151' : '#f3f4f6';
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.target.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        📋 Transactions
+                                    </Link>
+
+                                    <Link
+                                        href="/budgets"
+                                        style={{
+                                            color: isDarkMode ? '#f9fafb' : '#1f2937',
+                                            textDecoration: 'none',
+                                            fontSize: '0.9rem',
+                                            fontWeight: '500',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '6px',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseOver={(e) => {
+                                            e.target.style.backgroundColor = isDarkMode ? '#374151' : '#f3f4f6';
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.target.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        🎯 Budgets
+                                    </Link>
+
+                                    <Link
                                         href="/profile"
                                         style={{
                                             color: isDarkMode ? '#f9fafb' : '#1f2937',
@@ -183,6 +225,48 @@ export default function Navbar() {
                                         }}
                                     >
                                         👤 Profile
+                                    </Link>
+
+                                    <Link
+                                        href="/chat"
+                                        style={{
+                                            color: isDarkMode ? '#f9fafb' : '#1f2937',
+                                            textDecoration: 'none',
+                                            fontSize: '0.9rem',
+                                            fontWeight: '500',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '6px',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseOver={(e) => {
+                                            e.target.style.backgroundColor = isDarkMode ? '#374151' : '#f3f4f6';
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.target.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        🤖 AI Assistant
+                                    </Link>
+
+                                    <Link
+                                        href="/receipts"
+                                        style={{
+                                            color: isDarkMode ? '#f9fafb' : '#1f2937',
+                                            textDecoration: 'none',
+                                            fontSize: '0.9rem',
+                                            fontWeight: '500',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '6px',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseOver={(e) => {
+                                            e.target.style.backgroundColor = isDarkMode ? '#374151' : '#f3f4f6';
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.target.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        📄 Receipts
                                     </Link>
                                 </>
                             )}

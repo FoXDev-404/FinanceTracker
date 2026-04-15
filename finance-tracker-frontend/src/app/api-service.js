@@ -1,7 +1,7 @@
 // API Service for Finance Tracker
 // This file provides all API endpoints with fetch
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 // Helper function to parse error messages from API responses
 const parseErrorMessage = (data) => {
@@ -132,6 +132,103 @@ export const apiService = {
         }
     },
 
+    // 3.1. Update User Profile (Protected Route)
+    updateProfile: async (profileData) => {
+        try {
+            let token;
+            if (typeof window !== 'undefined') {
+                token = localStorage.getItem('accessToken');
+            }
+
+            if (!token) {
+                throw new Error('No access token found. Please login first.');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/profile/`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(profileData)
+            });
+
+            // If token is expired, try to refresh it
+            if (response.status === 401) {
+                await apiService.refreshToken();
+                let newToken;
+                if (typeof window !== 'undefined') {
+                    newToken = localStorage.getItem('accessToken');
+                }
+
+                const retryResponse = await fetch(`${API_BASE_URL}/profile/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${newToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(profileData)
+                });
+                return await handleResponse(retryResponse);
+            }
+
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Update profile failed:', error.message);
+            throw error;
+        }
+    },
+
+    // 3.2. Update Profile Picture (Protected Route)
+    updateProfilePicture: async (imageFile) => {
+        try {
+            let token;
+            if (typeof window !== 'undefined') {
+                token = localStorage.getItem('accessToken');
+            }
+
+            if (!token) {
+                throw new Error('No access token found. Please login first.');
+            }
+
+            const formData = new FormData();
+            formData.append('profile_picture', imageFile);
+
+            const response = await fetch(`${API_BASE_URL}/profile/`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    // Don't set Content-Type, let browser set it with boundary for FormData
+                },
+                body: formData
+            });
+
+            // If token is expired, try to refresh it
+            if (response.status === 401) {
+                await apiService.refreshToken();
+                let newToken;
+                if (typeof window !== 'undefined') {
+                    newToken = localStorage.getItem('accessToken');
+                }
+
+                const retryResponse = await fetch(`${API_BASE_URL}/profile/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${newToken}`,
+                        // Don't set Content-Type, let browser set it with boundary for FormData
+                    },
+                    body: formData
+                });
+                return await handleResponse(retryResponse);
+            }
+
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Update profile picture failed:', error.message);
+            throw error;
+        }
+    },
+
     // 4. User Logout (Protected Route)
     logout: async () => {
         try {
@@ -209,6 +306,454 @@ export const apiService = {
                 localStorage.removeItem('refreshToken');
                 localStorage.removeItem('user');
             }
+            throw error;
+        }
+    },
+
+    // 6. Accounts CRUD
+    getAccounts: async () => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/accounts/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Get accounts failed:', error.message);
+            throw error;
+        }
+    },
+
+    createAccount: async (accountData) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/accounts/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(accountData)
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Create account failed:', error.message);
+            throw error;
+        }
+    },
+
+    updateAccount: async (accountId, accountData) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/accounts/${accountId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(accountData)
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Update account failed:', error.message);
+            throw error;
+        }
+    },
+
+    deleteAccount: async (accountId) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/accounts/${accountId}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.status === 204) return { success: true };
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Delete account failed:', error.message);
+            throw error;
+        }
+    },
+
+    // 7. Categories CRUD
+    getCategories: async () => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/categories/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Get categories failed:', error.message);
+            throw error;
+        }
+    },
+
+    createCategory: async (categoryData) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/categories/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(categoryData)
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Create category failed:', error.message);
+            throw error;
+        }
+    },
+
+    updateCategory: async (categoryId, categoryData) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/categories/${categoryId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(categoryData)
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Update category failed:', error.message);
+            throw error;
+        }
+    },
+
+    deleteCategory: async (categoryId) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/categories/${categoryId}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.status === 204) return { success: true };
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Delete category failed:', error.message);
+            throw error;
+        }
+    },
+
+    // 8. Transactions CRUD
+    getTransactions: async (params = {}) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const queryString = new URLSearchParams(params).toString();
+            const url = queryString ? `${API_BASE_URL}/transactions/?${queryString}` : `${API_BASE_URL}/transactions/`;
+
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Get transactions failed:', error.message);
+            throw error;
+        }
+    },
+
+    createTransaction: async (transactionData) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/transactions/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(transactionData)
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Create transaction failed:', error.message);
+            throw error;
+        }
+    },
+
+    updateTransaction: async (transactionId, transactionData) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(transactionData)
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Update transaction failed:', error.message);
+            throw error;
+        }
+    },
+
+    deleteTransaction: async (transactionId) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.status === 204) return { success: true };
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Delete transaction failed:', error.message);
+            throw error;
+        }
+    },
+
+    // 9. Budgets CRUD
+    getBudgets: async () => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/budgets/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Get budgets failed:', error.message);
+            throw error;
+        }
+    },
+
+    getBudget: async (budgetId) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/budgets/${budgetId}/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Get budget failed:', error.message);
+            throw error;
+        }
+    },
+
+    createBudget: async (budgetData) => {
+        try {
+            let token;
+            if (typeof window !== 'undefined') {
+                token = localStorage.getItem('accessToken');
+            }
+
+            if (!token) {
+                throw new Error('No access token found. Please login first.');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/budgets/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(budgetData)
+            });
+
+            // If token is expired, try to refresh it
+            if (response.status === 401) {
+                await apiService.refreshToken();
+                let newToken;
+                if (typeof window !== 'undefined') {
+                    newToken = localStorage.getItem('accessToken');
+                }
+
+                const retryResponse = await fetch(`${API_BASE_URL}/budgets/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${newToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(budgetData)
+                });
+                return await handleResponse(retryResponse);
+            }
+
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Create budget failed:', error.message);
+            throw error;
+        }
+    },
+
+    updateBudget: async (budgetId, budgetData) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/budgets/${budgetId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(budgetData)
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Update budget failed:', error.message);
+            throw error;
+        }
+    },
+
+    deleteBudget: async (budgetId) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/budgets/${budgetId}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.status === 204) return { success: true };
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Delete budget failed:', error.message);
+            throw error;
+        }
+    },
+
+    // 10. Chat with AI Assistant
+    chat: async (message) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found. Please login first.');
+
+            const response = await fetch(`${API_BASE_URL}/chat/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message })
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Chat failed:', error.message);
+            throw error;
+        }
+    },
+
+    // 11. Receipts CRUD (AI-Powered Bill Scanner)
+    getReceipts: async () => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/receipts/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Get receipts failed:', error.message);
+            throw error;
+        }
+    },
+
+    uploadReceipt: async (imageFile) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const formData = new FormData();
+            formData.append('image', imageFile);
+
+            const response = await fetch(`${API_BASE_URL}/receipts/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                    // Don't set Content-Type, let browser set it with boundary for FormData
+                },
+                body: formData
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Upload receipt failed:', error.message);
+            throw error;
+        }
+    },
+
+    getReceipt: async (receiptId) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/receipts/${receiptId}/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Get receipt failed:', error.message);
+            throw error;
+        }
+    },
+
+    updateReceipt: async (receiptId, receiptData) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/receipts/${receiptId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(receiptData)
+            });
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Update receipt failed:', error.message);
+            throw error;
+        }
+    },
+
+    deleteReceipt: async (receiptId) => {
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (!token) throw new Error('No access token found.');
+
+            const response = await fetch(`${API_BASE_URL}/receipts/${receiptId}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.status === 204) return { success: true };
+            return await handleResponse(response);
+        } catch (error) {
+            console.error('Delete receipt failed:', error.message);
             throw error;
         }
     }

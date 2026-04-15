@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User, Account, Category, Transaction
+from .models import User, Account, Category, Transaction, Budget
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -41,28 +41,93 @@ class UserLoginSerializer(TokenObtainPairSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.ImageField(required=False, allow_null=True)
+
     class Meta:
         model = User
-        fields = ('user_id', 'name', 'email', 'created_at')
+        fields = ('user_id', 'name', 'email', 'profile_picture', 'created_at')
         read_only_fields = ('user_id', 'created_at')
 
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = '__all__'
+        fields = ('account_id', 'account_name', 'account_type', 'balance', 'created_at', 'user')
         read_only_fields = ('account_id', 'created_at', 'user')
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ('category_id', 'name', 'type', 'user')
         read_only_fields = ('category_id', 'user')
 
 
 class TransactionSerializer(serializers.ModelSerializer):
+    account_id = serializers.PrimaryKeyRelatedField(source='account', queryset=Account.objects.all(), write_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(source='category', queryset=Category.objects.all(), write_only=True)
+
+    account = AccountSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'request' in self.context and hasattr(self.context['request'], 'user') and self.context['request'].user.is_authenticated:
+            user = self.context['request'].user
+            self.fields['account_id'].queryset = Account.objects.filter(user=user)
+            self.fields['category_id'].queryset = Category.objects.filter(user=user)
+        else:
+            # For schema generation or unauthenticated requests, use empty querysets
+            self.fields['account_id'].queryset = Account.objects.none()
+            self.fields['category_id'].queryset = Category.objects.none()
+
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero.")
+        return value
+
+    def validate_date(self, value):
+        from django.utils import timezone
+        if value > timezone.now().date():
+            raise serializers.ValidationError("Transaction date cannot be in the future.")
+        return value
+
     class Meta:
         model = Transaction
-        fields = '__all__'
-        read_only_fields = ('transaction_id', 'created_at', 'user')
+        fields = ('account', 'category', 'account_id', 'category_id', 'amount', 'transaction_type', 'date', 'note', 'transaction_id', 'created_at', 'user')
+        read_only_fields = ('transaction_id', 'created_at', 'user', 'account', 'category')
+
+
+class BudgetSerializer(serializers.ModelSerializer):
+    category_id = serializers.PrimaryKeyRelatedField(source='category', queryset=Category.objects.all(), write_only=True)
+    category = CategorySerializer(read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'request' in self.context and hasattr(self.context['request'], 'user') and self.context['request'].user.is_authenticated:
+            user = self.context['request'].user
+            self.fields['category_id'].queryset = Category.objects.filter(user=user)
+        else:
+            # For schema generation or unauthenticated requests, use empty querysets
+            self.fields['category_id'].queryset = Category.objects.none()
+
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Budget amount must be greater than zero.")
+        return value
+
+    def validate_month(self, value):
+        from django.utils import timezone
+        current_month = timezone.now().date().replace(day=1)
+        # Allow past months for updates
+        if self.instance is None and value < current_month:
+            raise serializers.ValidationError("Budget month cannot be in the past.")
+        return value
+
+    class Meta:
+        model = Budget
+        fields = ('budget_id', 'category', 'category_id', 'amount', 'month', 'user')
+        read_only_fields = ('budget_id', 'user', 'category')
+
+
+

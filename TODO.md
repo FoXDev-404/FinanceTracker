@@ -1,37 +1,9 @@
-# Finance Tracker Functionality Implementation - TODO
+# TODO List for Making Home Page Dynamic
 
-## Task: Create functionality for accounts and other functionality based on provided SQL tables
-
-## Steps to Complete:
-
-### 1. Add Models
-- [x] Add Account model to models.py
-- [x] Add Category model to models.py
-- [x] Add Transaction model to models.py
-
-### 2. Create Serializers
-- [x] Add AccountSerializer to serializers.py
-- [x] Add CategorySerializer to serializers.py
-- [x] Add TransactionSerializer to serializers.py
-
-### 3. Create Views
-- [x] Add CRUD views for Account in views.py
-- [x] Add CRUD views for Category in views.py
-- [x] Add CRUD views for Transaction in views.py
-
-### 4. Update URLs
-- [x] Add URL patterns for Account views in urls.py
-- [x] Add URL patterns for Category views in urls.py
-- [x] Add URL patterns for Transaction views in urls.py
-
-### 5. Run Migrations
-- [x] Run `python manage.py makemigrations`
-- [x] Run `python manage.py migrate` (fake applied due to existing tables)
-
-### 6. Test Endpoints
-- [x] Test Account CRUD endpoints
-- [x] Test Category CRUD endpoints
-- [x] Test Transaction CRUD endpoints
-
-## Current Status:
-- ✅ Implementation completed and tested successfully
+## Tasks
+- [x] Update page.js to fetch dynamic data for logged-in users
+- [x] Implement Track Expenses card with total expenses and transaction count
+- [x] Implement Budget Planning card with budgeted vs spent and progress bar
+- [x] Implement Visual Analytics card with balance, ratio, and trend
+- [x] Add loading states and error handling
+- [x] Test dynamic data display and responsiveness
