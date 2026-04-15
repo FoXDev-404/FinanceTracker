@@ -9,5 +9,6 @@
 - [x] Step 6: Create local venv and test clean pip install -r requirements.txt. (Passed per prior tests)
 - [x] Step 7: python manage.py check (Django setup ok)
 - [x] Step 8: Deploy test1 - Python 3.12 success, pandas wheels ok, torch==2.1.0 no cp312 wheel.
-- [ ] Step 9: torch==2.4.1 && git commit/push redeploy.
+- [x] Step 9: torch==2.4.1 wheel ok.
+- [ ] Step 10: Remove unused googletrans (httpx conflict), git push final deploy.
 
