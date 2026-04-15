@@ -1,0 +1,17 @@
+
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "jsx": "preserve",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "strict": true
+  },
+  "include": ["next-env.d.ts", "**/*"],
+  "exclude": ["node_modules"]
+}
+

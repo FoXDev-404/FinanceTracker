@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Tracker API Testing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .logout-btn {
+            background: #dc3545;
+        }
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        .profile-btn {
+            background: #17a2b8;
+        }
+        .profile-btn:hover {
+            background: #138496;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .user-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .api-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .auth-section {
+            display: none;
+        }
+        .auth-section.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Finance Tracker API Testing</h1>
+
+    <div id="message" class="message" style="display: none;"></div>
+
+    <!-- Registration Form -->
+    <div class="container">
+        <h2>📝 User Registration</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="regName">Full Name:</label>
+                <input type="text" id="regName" required>
+            </div>
+            <div class="form-group">
+                <label for="regEmail">Email:</label>
+                <input type="email" id="regEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Password:</label>
+                <input type="password" id="regPassword" required>
+            </div>
+            <div class="form-group">
+                <label for="regPasswordConfirm">Confirm Password:</label>
+                <input type="password" id="regPasswordConfirm" required>
+            </div>
+            <button type="submit" id="registerBtn">Register</button>
+        </form>
+    </div>
+
+    <!-- Login Form -->
+    <div class="container">
+        <h2>🔑 User Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email:</label>
+                <input type="email" id="loginEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" required>
+            </div>
+            <button type="submit" id="loginBtn">Login</button>
+        </form>
+    </div>
+
+    <!-- Authenticated Actions -->
+    <div id="authSection" class="auth-section container">
+        <h2>🔒 Protected Actions</h2>
+        <div class="user-info">
+            <h3>Current User:</h3>
+            <pre id="userInfo">No user logged in</pre>
+        </div>
+        <button id="profileBtn" class="profile-btn">Get Profile</button>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+    </div>
+
+    <!-- API Information -->
+    <div class="container api-info">
+        <h3>📚 API Endpoints</h3>
+        <ul>
+            <li><strong>POST</strong> http://localhost:8000/api/register/ - Register new user</li>
+            <li><strong>POST</strong> http://localhost:8000/api/login/ - Login user (returns JWT tokens)</li>
+            <li><strong>GET</strong> http://localhost:8000/api/profile/ - Get user profile (requires JWT token)</li>
+            <li><strong>POST</strong> http://localhost:8000/api/logout/ - Logout user (requires JWT token)</li>
+            <li><strong>GET</strong> http://localhost:8000/swagger/ - API documentation</li>
+        </ul>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+
+        // DOM Elements
+        const messageDiv = document.getElementById('message');
+        const authSection = document.getElementById('authSection');
+        const userInfoPre = document.getElementById('userInfo');
+
+        // Show message
+        function showMessage(text, isError = false) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${isError ? 'error' : 'success'}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Check if user is logged in
+        function isLoggedIn() {
+            return localStorage.getItem('accessToken') !== null;
+        }
+
+        // Update auth section visibility
+        function updateAuthSection() {
+            if (isLoggedIn()) {
+                authSection.classList.add('show');
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                userInfoPre.textContent = JSON.stringify(user, null, 2);
+            } else {
+                authSection.classList.remove('show');
+            }
+        }
+
+        // API Functions
+        async function registerUser(userData) {
+            const response = await fetch(`${API_BASE_URL}/register/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: userData.name,
+                    email: userData.email,
+                    password: userData.password,
+                    password_confirm: userData.passwordConfirm
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || JSON.stringify(data));
+            }
+            return data;
+        }
+
+        async function loginUser(credentials) {
+            const response = await fetch(`${API_BASE_URL}/login/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: credentials.email,
+                    password: credentials.password
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || JSON.stringify(data));
+            }
+
+            // Store tokens
+            localStorage.setItem('accessToken', data.access);
+            localStorage.setItem('refreshToken', data.refresh);
+            localStorage.setItem('user', JSON.stringify(data));
+
+            return data;
+        }
+
+        async function getProfile() {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/profile/`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || JSON.stringify(data));
+            }
+            return data;
+        }
+
+        async function logoutUser() {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/logout/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || JSON.stringify(data));
+            }
+
+            // Clear storage
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+
+            return data;
+        }
+
+        // Event Listeners
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'Registering...';
+
+            try {
+                const result = await registerUser({
+                    name: document.getElementById('regName').value,
+                    email: document.getElementById('regEmail').value,
+                    password: document.getElementById('regPassword').value,
+                    passwordConfirm: document.getElementById('regPasswordConfirm').value
+                });
+
+                showMessage('✅ Registration successful!');
+                console.log('Registration result:', result);
+
+                // Clear form
+                document.getElementById('registerForm').reset();
+            } catch (error) {
+                showMessage(`❌ Registration failed: ${error.message}`, true);
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Register';
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            try {
+                const result = await loginUser({
+                    email: document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value
+                });
+
+                showMessage('✅ Login successful!');
+                updateAuthSection();
+
+                // Clear form
+                document.getElementById('loginForm').reset();
+            } catch (error) {
+                showMessage(`❌ Login failed: ${error.message}`, true);
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+
+        document.getElementById('profileBtn').addEventListener('click', async () => {
+            const profileBtn = document.getElementById('profileBtn');
+            profileBtn.disabled = true;
+            profileBtn.textContent = 'Loading...';
+
+            try {
+                const profile = await getProfile();
+                showMessage('✅ Profile retrieved successfully!');
+                console.log('Profile:', profile);
+            } catch (error) {
+                showMessage(`❌ Get profile failed: ${error.message}`, true);
+            } finally {
+                profileBtn.disabled = false;
+                profileBtn.textContent = 'Get Profile';
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const logoutBtn = document.getElementById('logoutBtn');
+            logoutBtn.disabled = true;
+            logoutBtn.textContent = 'Logging out...';
+
+            try {
+                await logoutUser();
+                showMessage('✅ Logout successful!');
+                updateAuthSection();
+            } catch (error) {
+                showMessage(`❌ Logout failed: ${error.message}`, true);
+            } finally {
+                logoutBtn.disabled = false;
+                logoutBtn.textContent = 'Logout';
+            }
+        });
+
+        // Initialize
+        updateAuthSection();
+    </script>
+</body>
+</html>
