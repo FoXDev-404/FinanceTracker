@@ -23,6 +23,6 @@ fuzzywuzzy==0.18.0
 python-levenshtein==0.25.1
 spacy==3.7.2
 transformers==4.36.0
-torch==2.1.0
+torch==2.4.1
 plotly==5.17.0
 matplotlib==3.8.0

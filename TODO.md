@@ -8,5 +8,6 @@
 - [ ] Step 5: Lighter deps - remove unused tensorflow==2.16.1.
 - [x] Step 6: Create local venv and test clean pip install -r requirements.txt. (Passed per prior tests)
 - [x] Step 7: python manage.py check (Django setup ok)
-- [ ] Step 8: Run git add . && git commit -m "Fix Railway deploy: Python 3.12 + lighter deps" && git push to redeploy.
+- [x] Step 8: Deploy test1 - Python 3.12 success, pandas wheels ok, torch==2.1.0 no cp312 wheel.
+- [ ] Step 9: torch==2.4.1 && git commit/push redeploy.
 
