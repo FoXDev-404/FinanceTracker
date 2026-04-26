@@ -15,10 +15,18 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import openai
 from decimal import Decimal
-import pytesseract
+try:
+    import pytesseract
+    PYTESSERACT_AVAILABLE = True
+except ImportError:
+    PYTESSERACT_AVAILABLE = False
 from PIL import Image
 import json
-import speech_recognition as sr
+try:
+    import speech_recognition as sr
+    SPEECH_RECOGNITION_AVAILABLE = True
+except ImportError:
+    SPEECH_RECOGNITION_AVAILABLE = False
 from django.core.files.base import ContentFile
 import base64
 import io
@@ -1135,9 +1143,12 @@ class ReceiptProcessView(APIView):
             return Response({"error": "No image provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Use pytesseract for OCR
+            # Use pytesseract for OCR if available, otherwise fall back to raw bytes
             img = Image.open(image)
-            text = pytesseract.image_to_string(img)
+            if PYTESSERACT_AVAILABLE:
+                text = pytesseract.image_to_string(img)
+            else:
+                return Response({"error": "OCR service not available on this deployment"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
             # Use AI to parse receipt
             prompt = f"""Parse this receipt text and extract:

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import dj_database_url
 from pathlib import Path
 from datetime import timedelta
 
@@ -18,9 +19,9 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = '0=o$2s+kr())9l&xui)a3*doba-1*@$dkn2n9!01u(-2+*@sww'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = os.environ.get('SECRET_KEY', '0=o$2s+kr())9l&xui)a3*doba-1*@$dkn2n9!01u(-2+*@sww')
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 # Security settings for production (disabled for development)
 SECURE_SSL_REDIRECT = False  # Disabled for development
@@ -44,12 +45,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'corsheaders',
-    'sslserver',
     'api',  # your app
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -78,17 +79,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'finance_tracker.wsgi.application'
 
-# Database (SQL Server Windows Authentication)
+# Database — reads DATABASE_URL env var set by Railway; falls back to SQLite for local dev
 DATABASES = {
-    'default': {
-        'ENGINE': 'mssql',
-        'NAME': 'Finance',  # your database name
-        'HOST': 'LAPTOP-UTBP1DTD\\SQLEXPRESS',  # double backslash
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'trusted_connection': 'yes',  # Windows Authentication
-        },
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 # Password validation
@@ -131,6 +128,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 STATIC_URL = 'static/'
 STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (for uploaded images like receipts)
 MEDIA_URL = '/media/'
@@ -182,14 +180,13 @@ SPECTACULAR_SETTINGS = {
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = False  # Disabled for production security
-CORS_ALLOWED_ORIGINS = [
-    "https://yourdomain.com",
-    "https://www.yourdomain.com",
-    "http://localhost:3000",  # For Next.js frontend development
-    "http://127.0.0.1:3000",  # Alternative localhost
-    "https://localhost:3000",  # HTTPS for Next.js frontend development
-    "https://127.0.0.1:3000",  # HTTPS alternative localhost
+CORS_ALLOW_ALL_ORIGINS = False
+_cors_origins_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins_env.split(',') if o.strip()] or [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://localhost:3000",
+    "https://127.0.0.1:3000",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_METHODS = [

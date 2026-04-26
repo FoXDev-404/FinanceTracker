@@ -15,7 +15,12 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 import joblib
-import spacy
+try:
+    import spacy
+    SPACY_AVAILABLE = True
+except ImportError:
+    SPACY_AVAILABLE = False
+    spacy = None
 
 # Conditional imports for optional dependencies
 try:
@@ -40,11 +45,12 @@ class AIService:
 
     def _load_models(self):
         """Load pre-trained models and initialize NLP."""
-        try:
-            # Load spaCy model for NLP tasks
-            self.nlp = spacy.load("en_core_web_sm")
-        except OSError:
-            logger.warning("spaCy model not found. Run: python -m spacy download en_core_web_sm")
+        if SPACY_AVAILABLE:
+            try:
+                # Load spaCy model for NLP tasks
+                self.nlp = spacy.load("en_core_web_sm")
+            except OSError:
+                logger.warning("spaCy model not found. Run: python -m spacy download en_core_web_sm")
 
         # Load category classification model if exists
         model_path = os.path.join(settings.BASE_DIR, 'api', 'models', 'category_classifier.pkl')
