@@ -110,6 +110,7 @@ class Transaction(models.Model):
     date = models.DateField()
     note = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
+    tags = models.ManyToManyField('Tag', blank=True, related_name='transactions')
 
     class Meta:
         db_table = 'Transactions'
@@ -118,6 +119,22 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.transaction_type} - {self.amount} on {self.date}"
+
+
+class Tag(models.Model):
+    tag_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    color = models.CharField(max_length=7, default='#3b82f6')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'Tags'
+        verbose_name = 'Tag'
+        verbose_name_plural = 'Tags'
+
+    def __str__(self):
+        return self.name
 
 
 class Budget(models.Model):
@@ -249,3 +266,89 @@ class Anomaly(models.Model):
 
     def __str__(self):
         return f"{self.anomaly_type} - {self.severity} ({self.confidence_score:.2f})"
+
+
+class RecurringTransaction(models.Model):
+    recurring_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_type = models.CharField(max_length=10, choices=[('Income', 'Income'), ('Expense', 'Expense')])
+    description = models.CharField(max_length=255, blank=True, null=True)
+    frequency = models.CharField(max_length=20, choices=[
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('biweekly', 'Biweekly'),
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('yearly', 'Yearly')
+    ])
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True, null=True)
+    next_due_date = models.DateField()
+    active = models.BooleanField(default=True)
+    auto_create = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'RecurringTransactions'
+        verbose_name = 'Recurring Transaction'
+        verbose_name_plural = 'Recurring Transactions'
+        ordering = ['next_due_date']
+
+    def __str__(self):
+        return f"Recurring {self.transaction_type} - {self.amount} ({self.frequency})"
+
+
+class SavingsGoal(models.Model):
+    goal_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    target_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    current_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    deadline = models.DateField(blank=True, null=True)
+    icon = models.CharField(max_length=50, blank=True, null=True)
+    color = models.CharField(max_length=7, blank=True, null=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'SavingsGoals'
+        verbose_name = 'Savings Goal'
+        verbose_name_plural = 'Savings Goals'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} - {self.current_amount} / {self.target_amount}"
+
+    @property
+    def progress_percentage(self):
+        if self.target_amount > 0:
+            return round((float(self.current_amount) / float(self.target_amount)) * 100, 1)
+        return 0.0
+
+    @property
+    def remaining_amount(self):
+        return float(self.target_amount - self.current_amount)
+
+
+class Notification(models.Model):
+    notification_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=50)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    read = models.BooleanField(default=False)
+    data = models.JSONField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'Notifications'
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.notification_type}"

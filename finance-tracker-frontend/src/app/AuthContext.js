@@ -27,12 +27,11 @@ export const AuthProvider = ({ children }) => {
                 const userData = localStorage.getItem('user');
 
                 if (token && userData) {
-                    setIsLoggedIn(true);
-                    setUser(JSON.parse(userData));
-
                     // Verify token is still valid by fetching profile
                     try {
                         await apiService.getProfile();
+                        setIsLoggedIn(true);
+                        setUser(JSON.parse(userData));
                     } catch (error) {
                         // Token might be expired, try to refresh
                         try {
@@ -41,6 +40,7 @@ export const AuthProvider = ({ children }) => {
                             if (newUserData) {
                                 setUser(JSON.parse(newUserData));
                             }
+                            setIsLoggedIn(true);
                         } catch (refreshError) {
                             // Refresh failed, clear auth state
                             handleLogout();
