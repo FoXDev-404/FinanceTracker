@@ -43,6 +43,7 @@ else:
 
 # ALLOWED_HOSTS configuration
 _allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '').strip()
+_railway_public_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
 if _allowed_hosts_env:
     ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts_env.split(',') if host.strip()]
 elif DEBUG:
@@ -51,6 +52,10 @@ elif DEBUG:
 else:
     # Fail securely in production if not specified
     raise ImproperlyConfigured("ALLOWED_HOSTS must be set when DEBUG is False.")
+
+# Railway rotates public domains across environments; keep host validation in sync.
+if _railway_public_domain and _railway_public_domain not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_railway_public_domain)
 
 # Security settings for production (disabled for development)
 SECURE_SSL_REDIRECT = False  # Disabled for development
@@ -218,6 +223,8 @@ _default_cors_origins = [
     "https://127.0.0.1:3000",
     "https://finance-tracker-rosy-xi.vercel.app",
 ]
+if _railway_public_domain:
+    _default_cors_origins.append(f"https://{_railway_public_domain}")
 _env_cors_origins = [o.strip() for o in _cors_origins_env.split(',') if o.strip()]
 
 # Merge defaults with environment-configured origins to avoid accidental lockouts in production.
