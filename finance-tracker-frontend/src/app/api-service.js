@@ -12,8 +12,22 @@ const parseErrorMessage = (data) => {
     return JSON.stringify(data);
 };
 
+const parseResponseBody = async (response) => {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+        return response.json();
+    }
+
+    const text = await response.text();
+    try {
+        return JSON.parse(text);
+    } catch {
+        return { detail: text || 'Empty response body' };
+    }
+};
+
 const handleResponse = async (response) => {
-    const data = await response.json();
+    const data = await parseResponseBody(response);
     if (!response.ok) throw new Error(parseErrorMessage(data));
     return data;
 };
@@ -59,7 +73,7 @@ const doRefreshToken = async () => {
         body: JSON.stringify({ refresh: refreshToken })
     });
 
-    const data = await response.json();
+    const data = await parseResponseBody(response);
     if (!response.ok) throw new Error(data.detail || 'Token refresh failed');
 
     if (data.access) {
@@ -592,4 +606,3 @@ export const apiService = {
 };
 
 export default apiService;
-
