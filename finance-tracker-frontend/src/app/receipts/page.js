@@ -113,12 +113,14 @@ export default function Receipts() {
                         <Image
                             src={preview}
                             alt="Receipt preview"
-                            width={800}
-                            height={400}
+                            width={0}
+                            height={0}
+                            sizes="100vw"
                             unoptimized
                             style={{
                                 maxWidth: '100%',
                                 maxHeight: '400px',
+                                width: 'auto',
                                 height: 'auto',
                                 borderRadius: '8px',
                                 display: 'block',
