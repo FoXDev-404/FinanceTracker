@@ -22,7 +22,7 @@ const parseResponseBody = async (response) => {
     try {
         return JSON.parse(text);
     } catch {
-        return { detail: text || 'Empty response body' };
+        return { detail: text || 'Unable to parse response as JSON' };
     }
 };
 
