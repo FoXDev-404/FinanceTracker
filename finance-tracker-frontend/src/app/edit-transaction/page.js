@@ -36,13 +36,12 @@ function EditTransactionContent() {
     const fetchTransactionData = async () => {
         try {
             setLoading(true);
-            const [transactionRes, accountsRes, categoriesRes] = await Promise.all([
-                apiService.getTransactions(),
+            const [transaction, accountsRes, categoriesRes] = await Promise.all([
+                apiService.getTransaction(transactionId),
                 apiService.getAccounts(),
                 apiService.getCategories()
             ]);
 
-            const transaction = transactionRes.find(t => t.transaction_id === transactionId);
             if (!transaction) {
                 alert('Transaction not found');
                 router.push('/dashboard');
