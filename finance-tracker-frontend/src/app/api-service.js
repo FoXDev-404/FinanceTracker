@@ -1,5 +1,22 @@
 // API Service for Finance Tracker
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+const normalizeApiBaseUrl = (rawUrl) => {
+    const fallback = 'http://127.0.0.1:8000/api';
+    if (!rawUrl || typeof rawUrl !== 'string') return fallback;
+
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return fallback;
+
+    const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const withoutTrailingSlash = withProtocol.replace(/\/+$/, '');
+
+    if (/\/api$/i.test(withoutTrailingSlash)) {
+        return withoutTrailingSlash;
+    }
+
+    return `${withoutTrailingSlash}/api`;
+};
+
+const API_BASE_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL);
 
 const withApiBaseHint = (error, endpoint = '') => {
     const suffix = endpoint || 'requested endpoint';
