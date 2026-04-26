@@ -140,7 +140,7 @@ function ProfileContent() {
                         margin: '0 0 20px 0',
                         color: '#333',
                         fontSize: '20px',
-                        borderBottom: '2px solid '#17a2b8',
+                        borderBottom: '2px solid #17a2b8',
                         paddingBottom: '10px'
                     }}>
                         🔧 Actions
