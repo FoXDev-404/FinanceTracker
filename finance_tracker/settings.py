@@ -14,14 +14,43 @@ import os
 import dj_database_url
 from pathlib import Path
 from datetime import timedelta
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+def get_env_variable(var_name, default=None, mandatory=False):
+    """Get the environment variable or return default/raise error."""
+    value = os.environ.get(var_name, default)
+    if mandatory and not value:
+        error_msg = f"The {var_name} environment variable must be set."
+        raise ImproperlyConfigured(error_msg)
+    return value
+
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = os.environ.get('SECRET_KEY', '0=o$2s+kr())9l&xui)a3*doba-1*@$dkn2n9!01u(-2+*@sww')
-DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = get_env_variable('SECRET_KEY', mandatory=True)
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG_VALUE = os.environ.get('DEBUG', 'False').lower()
+if DEBUG_VALUE in ('true', '1', 'yes', 'on'):
+    DEBUG = True
+elif DEBUG_VALUE in ('false', '0', 'no', 'off', ''):
+    DEBUG = False
+else:
+    # Fail securely if misconfigured
+    raise ImproperlyConfigured(f"Invalid value for DEBUG environment variable: {DEBUG_VALUE}")
+
+# ALLOWED_HOSTS configuration
+_allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '').strip()
+if _allowed_hosts_env:
+    ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts_env.split(',') if host.strip()]
+elif DEBUG:
+    # Default to localhost in development
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+else:
+    # Fail securely in production if not specified
+    raise ImproperlyConfigured("ALLOWED_HOSTS must be set when DEBUG is False.")
 
 # Security settings for production (disabled for development)
 SECURE_SSL_REDIRECT = False  # Disabled for development
