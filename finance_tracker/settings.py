@@ -187,6 +187,7 @@ CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins_env.split(',') if o.str
     "http://127.0.0.1:3000",
     "https://localhost:3000",
     "https://127.0.0.1:3000",
+    "https://finance-tracker-rosy-xi.vercel.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_METHODS = [
