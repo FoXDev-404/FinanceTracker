@@ -15,10 +15,18 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import openai
 from decimal import Decimal
-import pytesseract
+try:
+    import pytesseract
+    PYTESSERACT_AVAILABLE = True
+except ImportError:
+    PYTESSERACT_AVAILABLE = False
 from PIL import Image
 import json
-import speech_recognition as sr
+try:
+    import speech_recognition as sr
+    SPEECH_RECOGNITION_AVAILABLE = True
+except ImportError:
+    SPEECH_RECOGNITION_AVAILABLE = False
 from django.core.files.base import ContentFile
 import base64
 import io
