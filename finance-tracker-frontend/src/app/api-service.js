@@ -1,6 +1,18 @@
 // API Service for Finance Tracker
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 
+const withApiBaseHint = (error, endpoint = '') => {
+    const suffix = endpoint || 'requested endpoint';
+    if (error instanceof TypeError) {
+        return new Error(
+            `Network/CORS error while calling ${suffix}. ` +
+            `Current API base URL is ${API_BASE_URL}. ` +
+            'Please verify the backend URL is live and allows your frontend origin.'
+        );
+    }
+    return error;
+};
+
 const parseErrorMessage = (data) => {
     if (data.detail) return data.detail;
     if (typeof data === 'object' && data !== null) {
@@ -70,11 +82,16 @@ const doRefreshToken = async () => {
     const refreshToken = getRefreshToken();
     if (!refreshToken) throw new Error('No refresh token found.');
 
-    const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh: refreshToken })
-    });
+    let response;
+    try {
+        response = await fetch(`${API_BASE_URL}/token/refresh/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: refreshToken })
+        });
+    } catch (error) {
+        throw withApiBaseHint(error, `${API_BASE_URL}/token/refresh/`);
+    }
 
     const data = await parseResponseBody(response);
     if (!response.ok) throw new Error(data.detail || 'Token refresh failed');
@@ -145,25 +162,35 @@ const authHeaders = (contentType = true) => {
 export const apiService = {
     // Auth
     register: async (userData) => {
-        const response = await fetch(`${API_BASE_URL}/register/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: userData.name,
-                email: userData.email,
-                password: userData.password,
-                password_confirm: userData.passwordConfirm
-            })
-        });
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/register/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: userData.name,
+                    email: userData.email,
+                    password: userData.password,
+                    password_confirm: userData.passwordConfirm
+                })
+            });
+        } catch (error) {
+            throw withApiBaseHint(error, `${API_BASE_URL}/register/`);
+        }
         return handleResponse(response);
     },
 
     login: async (credentials) => {
-        const response = await fetch(`${API_BASE_URL}/login/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: credentials.email, password: credentials.password })
-        });
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/login/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: credentials.email, password: credentials.password })
+            });
+        } catch (error) {
+            throw withApiBaseHint(error, `${API_BASE_URL}/login/`);
+        }
         const data = await handleResponse(response);
         if (typeof window !== 'undefined' && data.access) {
             localStorage.setItem('accessToken', data.access);
@@ -216,11 +243,16 @@ export const apiService = {
     refreshToken: async () => {
         const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
         if (!refreshToken) throw new Error('No refresh token found.');
-        const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refresh: refreshToken })
-        });
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/token/refresh/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh: refreshToken })
+            });
+        } catch (error) {
+            throw withApiBaseHint(error, `${API_BASE_URL}/token/refresh/`);
+        }
         const data = await handleResponse(response);
         if (data.access && typeof window !== 'undefined') {
             localStorage.setItem('accessToken', data.access);
