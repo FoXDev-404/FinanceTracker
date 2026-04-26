@@ -35,7 +35,6 @@ export default function Profile() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         // TODO: Implement profile update functionality
-        console.log('Profile update:', profileData);
     };
 
     if (loading) {
