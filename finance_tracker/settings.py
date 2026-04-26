@@ -211,12 +211,19 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = False
 _cors_origins_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
-CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins_env.split(',') if o.strip()] or [
+_default_cors_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://localhost:3000",
     "https://127.0.0.1:3000",
     "https://finance-tracker-rosy-xi.vercel.app",
+]
+_env_cors_origins = [o.strip() for o in _cors_origins_env.split(',') if o.strip()]
+
+# Merge defaults with environment-configured origins to avoid accidental lockouts in production.
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys(_default_cors_origins + _env_cors_origins))
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_METHODS = [
