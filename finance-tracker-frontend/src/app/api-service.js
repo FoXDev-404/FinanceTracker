@@ -16,7 +16,9 @@ const normalizeApiBaseUrl = (rawUrl) => {
     return `${withoutTrailingSlash}/api`;
 };
 
-const API_BASE_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL);
+const API_BASE_URL = normalizeApiBaseUrl(
+    process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_URL
+);
 
 const withApiBaseHint = (error, endpoint = '') => {
     const suffix = endpoint || 'requested endpoint';
@@ -52,7 +54,7 @@ const parseResponseBody = async (response) => {
         return JSON.parse(text);
     } catch {
         if (text && text.trim().toLowerCase().startsWith('<!doctype html>')) {
-            return { detail: 'Configuration error: The API request returned an HTML page instead of data. Please check your NEXT_PUBLIC_API_URL environment variable to ensure it points to the correct backend API URL.' };
+            return { detail: 'Configuration error: The API request returned an HTML page instead of data. Please check your NEXT_PUBLIC_API_URL or NEXT_PUBLIC_BASE_URL environment variable to ensure it points to the correct backend API URL.' };
         }
         return { detail: text || 'Unable to parse response as JSON' };
     }
