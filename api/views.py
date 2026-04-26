@@ -27,7 +27,6 @@ try:
     SPEECH_RECOGNITION_AVAILABLE = True
 except ImportError:
     SPEECH_RECOGNITION_AVAILABLE = False
-from django.core.files.base import ContentFile
 import base64
 import io
 
