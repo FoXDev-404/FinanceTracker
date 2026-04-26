@@ -113,7 +113,7 @@ function ProfileContent() {
                                 padding: '15px',
                                 backgroundColor: '#f8f9fa',
                                 borderRadius: '8px',
-                                borderLeft: '4px solid '#17a2b8'
+                                borderLeft: '4px solid #17a2b8'
                             }}>
                                 <strong style={{ color: '#495057' }}>User ID:</strong>
                                 <p style={{ margin: '5px 0 0 0', color: '#212529', fontFamily: 'monospace' }}>

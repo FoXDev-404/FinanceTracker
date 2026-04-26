@@ -385,13 +385,13 @@ export default function Home() {
                                         {dynamicData.budgetProgress.toFixed(1)}% used this month
                                     </p>
                                     <p style={{ color: '#64748b', lineHeight: '1.6', fontSize: '0.875rem' }}>
-                                        Set realistic budgets and get notified when you're approaching your spending limits
+                                        Set realistic budgets and get notified when you&apos;re approaching your spending limits
                                     </p>
                                 </div>
                             ) : null
                         ) : (
                             <p style={{ color: '#64748b', lineHeight: '1.6' }}>
-                                Set realistic budgets and get notified when you're approaching your spending limits
+                                Set realistic budgets and get notified when you&apos;re approaching your spending limits
                             </p>
                         )}
                     </div>

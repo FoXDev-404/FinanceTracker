@@ -93,7 +93,7 @@ export default function Profile() {
                         fontSize: '2rem',
                         color: '#1f2937'
                     }}>
-                        {user?.name || 'User'}'s Profile
+                        {user?.name || 'User'}&apos;s Profile
                     </h1>
                     <p style={{ color: '#64748b', margin: 0 }}>
                         Manage your account settings and preferences

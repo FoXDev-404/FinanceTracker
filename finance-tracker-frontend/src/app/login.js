@@ -205,7 +205,7 @@ export default function Login() {
                             color: '#6c757d',
                             fontSize: '14px'
                         }}>
-                            Don't have an account?{' '}
+                            Don&apos;t have an account?{' '}
                             <Link
                                 href="/register"
                                 style={{

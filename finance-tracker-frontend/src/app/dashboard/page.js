@@ -121,7 +121,7 @@ export default function Dashboard() {
                         Welcome, {user?.name || 'User'}! 📊
                     </h1>
                     <p style={{ color: '#64748b', margin: 0 }}>
-                        Here's your complete financial overview
+                        Here&apos;s your complete financial overview
                     </p>
                 </div>
 

@@ -180,7 +180,7 @@ export default function Login() {
                         borderTop: '1px solid #e5e7eb'
                     }}>
                         <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                            Don't have an account?{' '}
+                            Don&apos;t have an account?{' '}
                             <Link
                                 href="/register"
                                 style={{
