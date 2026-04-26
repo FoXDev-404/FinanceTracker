@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../AuthContext';
 import { apiService } from '../api-service';
 
-export default function EditBudget() {
+function EditBudgetContent() {
     const { isLoggedIn } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -261,5 +261,13 @@ export default function EditBudget() {
                 </div>
             </div>
         </main>
+    );
+}
+
+export default function EditBudget() {
+    return (
+        <Suspense fallback={<main style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p>Loading...</p></main>}>
+            <EditBudgetContent />
+        </Suspense>
     );
 }
