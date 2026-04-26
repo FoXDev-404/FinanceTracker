@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../AuthContext';
 import { apiService } from '../api-service';
@@ -17,15 +17,7 @@ export default function AddBudget() {
         month: new Date().toISOString().slice(0, 7) // YYYY-MM
     });
 
-    useEffect(() => {
-        if (!isLoggedIn) {
-            router.push('/login');
-        } else {
-            fetchCategories();
-        }
-    }, [isLoggedIn, router]);
-
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         try {
             setLoading(true);
             const categoriesRes = await apiService.getCategories();
@@ -36,7 +28,15 @@ export default function AddBudget() {
             alert('Failed to load categories.');
             router.push('/dashboard');
         }
-    };
+    }, [router]);
+
+    useEffect(() => {
+        if (!isLoggedIn) {
+            router.push('/login');
+        } else {
+            fetchCategories();
+        }
+    }, [isLoggedIn, router, fetchCategories]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

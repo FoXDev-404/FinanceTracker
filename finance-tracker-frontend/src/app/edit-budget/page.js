@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useCallback, useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../AuthContext';
 import { apiService } from '../api-service';
@@ -21,15 +21,7 @@ function EditBudgetContent() {
         month: ''
     });
 
-    useEffect(() => {
-        if (!isLoggedIn) {
-            router.push('/login');
-        } else if (budgetId) {
-            fetchBudgetData();
-        }
-    }, [isLoggedIn, router, budgetId]);
-
-    const fetchBudgetData = async () => {
+    const fetchBudgetData = useCallback(async () => {
         try {
             setLoading(true);
             const [budgetRes, categoriesRes] = await Promise.all([
@@ -58,7 +50,15 @@ function EditBudgetContent() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [budgetId, router]);
+
+    useEffect(() => {
+        if (!isLoggedIn) {
+            router.push('/login');
+        } else if (budgetId) {
+            fetchBudgetData();
+        }
+    }, [isLoggedIn, router, budgetId, fetchBudgetData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

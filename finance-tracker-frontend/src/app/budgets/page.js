@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../AuthContext';
 import { apiService } from '../api-service';
@@ -16,35 +16,7 @@ export default function Budgets() {
     const [totalBudgeted, setTotalBudgeted] = useState(0);
     const [totalExpenses, setTotalExpenses] = useState(0);
 
-    useEffect(() => {
-        if (!isLoggedIn) {
-            router.push('/login');
-        } else {
-            fetchData();
-        }
-    }, [isLoggedIn, router]);
-
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const [budgetsData, categoriesData, transactionsData] = await Promise.all([
-                apiService.getBudgets(),
-                apiService.getCategories(),
-                apiService.getTransactions()
-            ]);
-            setBudgets(budgetsData);
-            setCategories(categoriesData.filter(cat => cat.type === 'Expense'));
-            setTransactions(transactionsData);
-
-            calculateFinancialSummaries(budgetsData, transactionsData);
-        } catch (error) {
-            console.error('Failed to fetch data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const calculateFinancialSummaries = (budgetsData, transactionsData) => {
+    const calculateFinancialSummaries = useCallback((budgetsData, transactionsData) => {
         let income = 0;
         let expenses = 0;
         transactionsData.forEach(transaction => {
@@ -62,7 +34,35 @@ export default function Budgets() {
             totalBudgetAmount += parseFloat(budget.amount);
         });
         setTotalBudgeted(totalBudgetAmount);
-    };
+    }, []);
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [budgetsData, categoriesData, transactionsData] = await Promise.all([
+                apiService.getBudgets(),
+                apiService.getCategories(),
+                apiService.getTransactions()
+            ]);
+            setBudgets(budgetsData);
+            setCategories(categoriesData.filter(cat => cat.type === 'Expense'));
+            setTransactions(transactionsData);
+
+            calculateFinancialSummaries(budgetsData, transactionsData);
+        } catch (error) {
+            console.error('Failed to fetch data:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [calculateFinancialSummaries]);
+
+    useEffect(() => {
+        if (!isLoggedIn) {
+            router.push('/login');
+        } else {
+            fetchData();
+        }
+    }, [isLoggedIn, router, fetchData]);
 
     const fetchBudgets = async () => {
         // This function is now part of fetchData, but kept for potential individual refresh

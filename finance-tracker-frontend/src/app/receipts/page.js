@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../AuthContext';
@@ -109,9 +110,21 @@ export default function Receipts() {
                         boxShadow: '0 4px 6px rgba(0,0,0,0.05)', marginBottom: '2rem'
                     }}>
                         <h3 style={{ margin: '0 0 1rem 0', color: '#1f2937' }}>📷 Preview</h3>
-                        <img src={preview} alt="Receipt preview" style={{
-                            maxWidth: '100%', maxHeight: '400px', borderRadius: '8px', display: 'block', margin: '0 auto'
-                        }} />
+                        <Image
+                            src={preview}
+                            alt="Receipt preview"
+                            width={800}
+                            height={400}
+                            unoptimized
+                            style={{
+                                maxWidth: '100%',
+                                maxHeight: '400px',
+                                height: 'auto',
+                                borderRadius: '8px',
+                                display: 'block',
+                                margin: '0 auto'
+                            }}
+                        />
                         <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
                             <button onClick={handleUpload} disabled={uploading}
                                 style={{
@@ -177,4 +190,3 @@ function DataField({ label, value }) {
         </div>
     );
 }
-

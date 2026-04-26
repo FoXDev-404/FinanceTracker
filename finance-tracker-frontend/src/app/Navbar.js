@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthContext';
@@ -25,27 +26,7 @@ export default function Navbar() {
         }
     }, []);
 
-    // Fetch notifications
-    useEffect(() => {
-        if (isLoggedIn) {
-            fetchNotifications();
-            const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
-            return () => clearInterval(interval);
-        }
-    }, [isLoggedIn]);
-
-    // Close notifications on outside click
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (notifRef.current && !notifRef.current.contains(event.target)) {
-                setShowNotifications(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async () => {
         try {
             const [notifs, countRes] = await Promise.all([
                 apiService.getNotifications(),
@@ -63,7 +44,27 @@ export default function Navbar() {
                 console.error('Failed to fetch notifications:', error);
             }
         }
-    };
+    }, [handleLogout, router]);
+
+    // Fetch notifications
+    useEffect(() => {
+        if (isLoggedIn) {
+            fetchNotifications();
+            const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
+            return () => clearInterval(interval);
+        }
+    }, [isLoggedIn, fetchNotifications]);
+
+    // Close notifications on outside click
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (notifRef.current && !notifRef.current.contains(event.target)) {
+                setShowNotifications(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const markAsRead = async (id) => {
         try {
@@ -315,7 +316,14 @@ export default function Navbar() {
                                     display: 'flex', alignItems: 'center', gap: '0.5rem'
                                 }}>
                                     {user?.profile_picture ? (
-                                        <img src={user.profile_picture} alt="Profile" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                                        <Image
+                                            src={user.profile_picture}
+                                            alt="Profile"
+                                            width={32}
+                                            height={32}
+                                            unoptimized
+                                            style={{ borderRadius: '50%', objectFit: 'cover' }}
+                                        />
                                     ) : (
                                         <span style={{ fontSize: '1.25rem' }}>👤</span>
                                     )}
@@ -354,4 +362,3 @@ export default function Navbar() {
         </>
     );
 }
-

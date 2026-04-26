@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useCallback, useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../AuthContext';
 import { apiService } from '../api-service';
@@ -25,15 +25,7 @@ function EditTransactionContent() {
         date: ''
     });
 
-    useEffect(() => {
-        if (!isLoggedIn) {
-            router.push('/login');
-        } else if (transactionId) {
-            fetchTransactionData();
-        }
-    }, [isLoggedIn, router, transactionId]);
-
-    const fetchTransactionData = async () => {
+    const fetchTransactionData = useCallback(async () => {
         try {
             setLoading(true);
             const [transactionRes, accountsRes, categoriesRes] = await Promise.all([
@@ -68,7 +60,15 @@ function EditTransactionContent() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [transactionId, router]);
+
+    useEffect(() => {
+        if (!isLoggedIn) {
+            router.push('/login');
+        } else if (transactionId) {
+            fetchTransactionData();
+        }
+    }, [isLoggedIn, router, transactionId, fetchTransactionData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
