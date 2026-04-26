@@ -21,7 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = os.environ.get('SECRET_KEY', '0=o$2s+kr())9l&xui)a3*doba-1*@$dkn2n9!01u(-2+*@sww')
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+_allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '*')
+ALLOWED_HOSTS = [h.strip().strip('"').strip("'") for h in _allowed_hosts_env.split(',') if h.strip().strip('"').strip("'")]
 
 # Security settings for production (disabled for development)
 SECURE_SSL_REDIRECT = False  # Disabled for development
@@ -182,7 +183,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = False
 _cors_origins_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
-CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins_env.split(',') if o.strip()] or [
+CORS_ALLOWED_ORIGINS = [o.strip().strip('"').strip("'") for o in _cors_origins_env.split(',') if o.strip().strip('"').strip("'")] or [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://localhost:3000",
