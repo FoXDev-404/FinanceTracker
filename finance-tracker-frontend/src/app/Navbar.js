@@ -16,6 +16,7 @@ export default function Navbar() {
     const { user, isLoggedIn, loading, handleLogout, message } = useAuth();
     const router = useRouter();
     const notifRef = useRef(null);
+    const handleLogoutRef = useRef(handleLogout);
 
     // Check for saved dark mode preference
     useEffect(() => {
@@ -25,6 +26,10 @@ export default function Navbar() {
             document.documentElement.classList.add('dark');
         }
     }, []);
+
+    useEffect(() => {
+        handleLogoutRef.current = handleLogout;
+    }, [handleLogout]);
 
     const fetchNotifications = useCallback(async () => {
         try {
@@ -38,13 +43,13 @@ export default function Navbar() {
             // Stop polling and redirect on auth errors
             if (error.message?.includes('Unauthorized') || error.message?.includes('Session expired')) {
                 console.warn('Auth failed for notifications, stopping poll');
-                await handleLogout();
+                await handleLogoutRef.current();
                 router.push('/login');
             } else {
                 console.error('Failed to fetch notifications:', error);
             }
         }
-    }, [handleLogout, router]);
+    }, [router]);
 
     // Fetch notifications
     useEffect(() => {

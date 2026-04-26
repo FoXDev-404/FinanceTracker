@@ -110,23 +110,19 @@ export default function Receipts() {
                         boxShadow: '0 4px 6px rgba(0,0,0,0.05)', marginBottom: '2rem'
                     }}>
                         <h3 style={{ margin: '0 0 1rem 0', color: '#1f2937' }}>📷 Preview</h3>
-                        <Image
-                            src={preview}
-                            alt="Receipt preview"
-                            width={0}
-                            height={0}
-                            sizes="100vw"
-                            unoptimized
-                            style={{
-                                maxWidth: '100%',
-                                maxHeight: '400px',
-                                width: 'auto',
-                                height: 'auto',
-                                borderRadius: '8px',
-                                display: 'block',
-                                margin: '0 auto'
-                            }}
-                        />
+                        <div style={{ position: 'relative', width: '100%', height: '400px' }}>
+                            <Image
+                                src={preview}
+                                alt="Receipt preview"
+                                fill
+                                sizes="(max-width: 800px) 100vw, 800px"
+                                unoptimized
+                                style={{
+                                    objectFit: 'contain',
+                                    borderRadius: '8px'
+                                }}
+                            />
+                        </div>
                         <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
                             <button onClick={handleUpload} disabled={uploading}
                                 style={{
