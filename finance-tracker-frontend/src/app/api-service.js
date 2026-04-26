@@ -325,6 +325,10 @@ export const apiService = {
         const response = await fetchWithAuth(url, { headers: authHeaders(false) });
         return handleResponse(response);
     },
+    getTransaction: async (transactionId) => {
+        const response = await fetchWithAuth(`${API_BASE_URL}/transactions/${transactionId}/`, { headers: authHeaders(false) });
+        return handleResponse(response);
+    },
     createTransaction: async (transactionData) => {
         const response = await fetchWithAuth(`${API_BASE_URL}/transactions/`, {
             method: 'POST',
