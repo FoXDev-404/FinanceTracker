@@ -359,7 +359,7 @@ export default function ChatPage() {
                     fontSize: '0.875rem'
                 }}>
                     <p style={{ margin: 0 }}>
-                        💡 Try asking: "What's my spending trend?" or "How can I save more money?"
+                        💡 Try asking: &quot;What&apos;s my spending trend?&quot; or &quot;How can I save more money?&quot;
                     </p>
                 </div>
             </div>
